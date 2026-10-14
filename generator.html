@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔑 Key Generator - CH4KALON</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+  }
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+  h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+  label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; margin-top: 14px; }
+  input, select, button {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: #4a9eff; }
+  button {
+    margin-top: 20px;
+    background: linear-gradient(135deg, #4a9eff, #2563eb);
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  button:active { transform: scale(0.98); }
+  button:hover { opacity: 0.9; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .key-output {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(74,158,255,0.1);
+    border: 1px solid rgba(74,158,255,0.3);
+    border-radius: 10px;
+    display: none;
+  }
+  .key-output.show { display: block; }
+  .key-text {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #4a9eff;
+    word-break: break-all;
+    text-align: center;
+    margin: 10px 0;
+  }
+  .info { font-size: 12px; color: #aaa; text-align: center; }
+  .btn-copy {
+    background: rgba(74,158,255,0.2);
+    margin-top: 8px;
+    padding: 10px;
+    font-size: 13px;
+  }
+  .status {
+    margin-top: 12px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 20px;
+  }
+  .status.ok { color: #4ade80; }
+  .status.err { color: #f87171; }
+  .status.loading { color: #fbbf24; }
+  .note {
+    margin-top: 20px;
+    padding: 12px;
+    background: rgba(251,191,36,0.1);
+    border-left: 3px solid #fbbf24;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #fbbf24;
+    line-height: 1.6;
+  }
+  .note code {
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .log {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #6ee7b7;
+    max-height: 120px;
+    overflow-y: auto;
+    display: none;
+  }
+  .log.show { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔑 Key Generator</h1>
+  <p class="subtitle">ᴄʜ4ᴋᴀʟᴏɴ ᴇxᴇ | FF MAX Script</p>
+
+  <label>🔐 Bin ID (JSONBin)</label>
+  <input type="text" id="binId" placeholder="64a598039d312622a37ab8a2">
+
+  <label>🔑 API Key (X-Master-Key)</label>
+  <input type="text" id="apiKey" placeholder="$2a$10$...">
+
+  <label>🎫 Key (kosongin = auto generate)</label>
+  <input type="text" id="customKey" placeholder="CH4K-VIP-001">
+
+  <label>📅 Expired</label>
+  <select id="days">
+    <option value="1">1 hari (Trial)</option>
+    <option value="7">7 hari</option>
+    <option value="30" selected>30 hari (1 bulan)</option>
+    <option value="90">90 hari (3 bulan)</option>
+    <option value="180">180 hari (6 bulan)</option>
+    <option value="365">365 hari (1 tahun)</option>
+    <option value="3650">3650 hari (Permanent)</option>
+  </select>
+
+  <button id="btnGen" onclick="generate()">🎲 Generate Key</button>
+
+  <div class="key-output" id="output">
+    <div class="info">🎫 Key kamu:</div>
+    <div class="key-text" id="keyText"></div>
+    <div class="info">📅 Expired: <span id="expText"></span></div>
+    <button class="btn-copy" onclick="copyKey()">📋 Copy Key</button>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="log" id="log"></div>
+
+  <div class="note">
+    ⚠️ <b>Cara pakai:</b><br>
+    1. Isi <b>Bin ID</b> & <b>API Key</b> dari jsonbin.io<br>
+    2. Pilih durasi expired<br>
+    3. Klik Generate → key otomatis ke-push ke JSONBin<br>
+    4. Share key ke user<br>
+    <br>
+    💡 <b>Simpan</b> Bin ID & API Key di browser biar gak ngetik ulang
+  </div>
+</div>
+
+<script>
+const statusEl = document.getElementById('status');
+const logEl = document.getElementById('log');
+
+// Auto-save Bin ID & API Key
+window.addEventListener('load', () => {
+  const savedBinId = localStorage.getItem('ch4k_binId');
+  const savedApiKey = localStorage.getItem('ch4k_apiKey');
+  if (savedBinId) document.getElementById('binId').value = savedBinId;
+  if (savedApiKey) document.getElementById('apiKey').value = savedApiKey;
+});
+
+function log(msg) {
+  logEl.classList.add('show');
+  logEl.innerHTML += '› ' + msg + '<br>';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function showStatus(msg, type) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status ' + (type || '');
+}
+
+function randStr(len) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+async function generate() {
+  const binId = document.getElementById('binId').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const custom = document.getElementById('customKey').value.trim();
+  const days = parseInt(document.getElementById('days').value);
+
+  logEl.innerHTML = '';
+  logEl.classList.remove('show');
+
+  if (!binId) { showStatus('❌ Bin ID belum diisi!', 'err'); return; }
+  if (!apiKey) { showStatus('❌ API Key belum diisi!', 'err'); return; }
+
+  // Save ke localStorage
+  localStorage.setItem('ch4k_binId', binId);
+  localStorage.setItem('ch4k_apiKey', apiKey);
+
+  const btn = document.getElementById('btnGen');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processing...';
+
+  const key = custom || ('CH4K-' + randStr(5) + '-' + randStr(5));
+  const exp = new Date();
+  exp.setDate(exp.getDate() + days);
+  const expStr = exp.toISOString().split('T')[0];
+
+  try {
+    // === STEP 1: Fetch DB lama ===
+    log('Fetching database...');
+    showStatus('⏳ Mengambil database...', 'loading');
+
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: {
+        'X-Master-Key': apiKey,
+        'X-Bin-Meta': 'false'
+      }
+    });
+
+    if (!res.ok) throw new Error('Fetch gagal: ' + res.status);
+    let db = await res.json();
+    log('Database terambil. Jumlah keys: ' + Object.keys(db.keys || {}).length);
+
+    // === STEP 2: Tambah key baru ===
+    if (!db || typeof db !== 'object') db = {};
+    if (!db.keys) db.keys = {};
+
+    if (db.keys[key]) {
+      if (!confirm('Key "' + key + '" udah ada. Timpa?')) {
+        btn.disabled = false;
+        btn.textContent = '🎲 Generate Key';
+        showStatus('❌ Dibatalkan', 'err');
+        return;
+      }
+    }
+
+    db.keys[key] = {
+      exp: expStr,
+      hwid: '',
+      created: new Date().toISOString().split('T')[0]
+    };
+    log('Key "' + key + '" ditambahkan');
+
+    // === STEP 3: Push balik ===
+    log('Pushing ke JSONBin...');
+    showStatus('⏳ Menyimpan...', 'loading');
+
+    const put = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': apiKey
+      },
+      body: JSON.stringify(db)
+    });
+
+    if (!put.ok) throw new Error('PUT gagal: ' + put.status);
+    log('✅ Berhasil disimpan');
+
+    // === STEP 4: Tampilkan ===
+    document.getElementById('keyText').textContent = key;
+    document.getElementById('expText').textContent = expStr;
+    document.getElementById('output').classList.add('show');
+
+    showStatus('✅ Key berhasil dibuat!', 'ok');
+
+    navigator.clipboard.writeText(key).then(() => {
+      log('📋 Key auto-copy ke clipboard');
+    }).catch(() => {});
+
+  } catch (e) {
+    log('❌ Error: ' + e.message);
+    showStatus('❌ Error: ' + e.message, 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🎲 Generate Key';
+}
+
+function copyKey() {
+  const key = document.getElementById('keyText').textContent;
+  navigator.clipboard.writeText(key).then(() => {
+    showStatus('📋 Key di-copy!', 'ok');
+  });
+}
+</script>
+</body>
+</html>
